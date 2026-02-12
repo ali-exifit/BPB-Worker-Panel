@@ -6083,7 +6083,7 @@ async function getSbWarpConfig(request, env) {
     "WoW - Best Ping"
   ];
   warpEndpoints.forEach((endpoint, index) => {
-    const warpTag = `${index + 1} - Warp ;
+    const warpTag = `${index + 1} - Warp `;
     proxyTags.push(warpTag);
     const wowTag = `${index + 1} - WoW `;
     chainTags.push(wowTag);
