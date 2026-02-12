@@ -2440,7 +2440,7 @@ async function fetchWarpAccounts(env) {
       publicKey: config.peers[0].public_key
     });
   }
-  await env.S.put("warpAccounts", JSON.stringify(WarpAccounts));
+  await env.S.put("yzien", JSON.stringify(WarpAccounts));
   return WarpAccounts;
 }
 async function generateKeyPair() {
@@ -2468,7 +2468,7 @@ function isDomain(address) {
   return domainRegex.test(address);
 }
 async function resolveDNS(domain, onlyIPv4 = false) {
-  const dohBaseURL = `https://freedns.controld.com/p2?name=${encodeURIComponent(domain)}`;
+  const dohBaseURL = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}`;
   const dohURLs = {
     ipv4: `${dohBaseURL}&type=A`,
     ipv6: `${dohBaseURL}&type=AAAA`
@@ -2522,11 +2522,11 @@ function generateRemark(index, port, address, protocol, isFragment, isChain) {
   } = globalThis;
   const isCustomAddr = customCdnAddrs.includes(address);
   const configType = isCustomAddr ? " C" : isFragment ? " F" : "";
-  const chainSign = isChain ? "\u{1F517} " : "";
+  const chainSign = isChain ? "" : "";
   const protoSign = protocol === _VL_ ? _VL_CAP_ : _TR_CAP_;
   let addressType;
   cleanIPs.includes(address) ? addressType = "Clean IP" : addressType = isDomain(address) ? "Domain" : isIPv4(address) ? "IPv4" : isIPv6(address) ? "IPv6" : "";
-  return `\u{1F4A6} ${index} - ${chainSign}${protoSign}${configType} - ${addressType} : ${port}`;
+  return `${index} - ${chainSign}${protoSign}${configType} - ${addressType} : ${port}`;
 }
 function randomUpperCase(str) {
   let result = "";
@@ -2704,24 +2704,24 @@ function respond(success, status, message2, body, customHeaders) {
 
 // src/S.ts
 async function getDataset(request, env) {
-  const { httpConfig: { panelVersion }, settings } = globalThis;
-  let proxySettings, warpAccounts;
+  const { httpConfig: { jzqei }, settings } = globalThis;
+  let tujzk, yzien;
   try {
-    proxySettings = await env.S.get("proxySettings", { type: "json" });
-    warpAccounts = await env.S.get("warpAccounts", { type: "json" });
-    if (!proxySettings) {
-      await env.S.put("proxySettings", JSON.stringify(settings));
-      proxySettings = settings;
+    tujzk = await env.S.get("tujzk", { type: "json" });
+    yzien = await env.S.get("yzien", { type: "json" });
+    if (!tujzk) {
+      await env.S.put("tujzk", JSON.stringify(settings));
+      tujzk = settings;
     }
-    if (!warpAccounts) {
-      warpAccounts = await fetchWarpAccounts(env);
+    if (!yzien) {
+      yzien = await fetchWarpAccounts(env);
     }
-    if (panelVersion !== proxySettings.panelVersion) {
-      proxySettings = await updateDataset(request, env);
+    if (jzqei !== tujzk.jzqei) {
+      tujzk = await updateDataset(request, env);
     }
     return {
-      settings: proxySettings,
-      warpAccounts
+      settings: tujzk,
+      yzien
     };
   } catch (error) {
     console.log(error);
@@ -2730,11 +2730,11 @@ async function getDataset(request, env) {
   }
 }
 async function updateDataset(request, env) {
-  const { settings, httpConfig: { panelVersion } } = globalThis;
+  const { settings, httpConfig: { jzqei } } = globalThis;
   const newSettings = request.method === "PUT" ? await request.json() : null;
   let currentSettings;
   try {
-    currentSettings = await env.S.get("proxySettings", { type: "json" });
+    currentSettings = await env.S.get("tujzk", { type: "json" });
   } catch (error) {
     const message2 = error instanceof Error ? error.message : String(error);
     console.log(message2);
@@ -2825,10 +2825,10 @@ async function updateDataset(request, env) {
   );
   const updatedSettings = {
     ...Object.fromEntries(entries),
-    panelVersion
+    jzqei
   };
   try {
-    await env.S.put("proxySettings", JSON.stringify(updatedSettings));
+    await env.S.put("tujzk", JSON.stringify(updatedSettings));
     return updatedSettings;
   } catch (error) {
     const message2 = error instanceof Error ? error.message : String(error);
@@ -2989,24 +2989,24 @@ globalThis.settings = {
   fragmentMaxSplitMin: void 0,
   fragmentMaxSplitMax: void 0,
   fragmentPackets: "tlshello",
-  enableECH: false,
+  enableECH: true,
   echConfig: "",
   bypassIran: true,
   bypassChina: false,
   bypassRussia: false,
-  bypassOpenAi: false,
-  bypassGoogleAi: false,
-  bypassMicrosoft: false,
-  bypassOracle: false,
-  bypassDocker: false,
-  bypassAdobe: false,
-  bypassEpicGames: false,
-  bypassIntel: false,
-  bypassAmd: false,
-  bypassNvidia: false,
-  bypassAsus: false,
-  bypassHp: false,
-  bypassLenovo: false,
+  bypassOpenAi: true,
+  bypassGoogleAi: true,
+  bypassMicrosoft: true,
+  bypassOracle: true,
+  bypassDocker: true,
+  bypassAdobe: true,
+  bypassEpicGames: true,
+  bypassIntel: true,
+  bypassAmd: true,
+  bypassNvidia: true,
+  bypassAsus: true,
+  bypassHp: true,
+  bypassLenovo: true,
   blockAds: true,
   blockPorn: false,
   blockUDP443: true,
@@ -3016,7 +3016,7 @@ globalThis.settings = {
   customBypassRules: [],
   customBlockRules: [],
   customBypassSanctionRules: [],
-  warpRemoteDNS: "76.76.2.2",
+  warpRemoteDNS: "1.1.1.1",
   warpEndpoints: ["engage.cloudflareclient.com:2408"],
   bestWarpInterval: 30,
   xrayUdpNoises: [
@@ -3038,7 +3038,7 @@ globalThis.settings = {
   amneziaNoiseCount: 5,
   amneziaNoiseSizeMin: 50,
   amneziaNoiseSizeMax: 100,
-  panelVersion: "4.1.0"
+  jzqei: "PRO"
 };
 async function setSettings(request, env) {
   const dataset = await getDataset(request, env);
@@ -3049,7 +3049,7 @@ function init(request, env) {
   const { U, P, FALLBACK, DOH_URL } = env;
   globalThis.globalConfig = {
     userID: U,
-    TrPass: P,
+    wytlg: P,
     pathName: decodeURIComponent(pathname),
     fallbackDomain: FALLBACK || "wikipedia.com",
     dohURL: DOH_URL || "https://freedns.controld.com/p2"
@@ -3070,21 +3070,21 @@ function initWs(env) {
 }
 function initHttp(request, env) {
   const { _VL_CAP_, _TR_CAP_, _website_ } = globalThis.dict;
-  const { U, P, SP, S } = env;
+  const { U, P, SUB_PATH, S } = env;
   const { pathname, origin, searchParams, hostname } = new URL(request.url);
-  if (!["/secrets", "/file.ico"].includes(decodeURIComponent(pathname))) {
+  if (!["/secrets", "/favicon.ico"].includes(decodeURIComponent(pathname))) {
     if (!U || !P) throw new Error(`Please set ${_VL_CAP_} U and ${_TR_CAP_} password first. Visit <a href="${origin}/secrets" target="_blank">here</a> to generate them.`, { cause: "init" });
     if (!isValidUUID(U)) throw new Error(`Invalid U: ${U}`, { cause: "init" });
     if (typeof S !== "object") throw new Error(`KV Dataset is not properly set! Please refer to <a href="${_website_}" target="_blank">tutorials</a>.`, { cause: "init" });
   }
   globalThis.httpConfig = {
-    panelVersion: "Pro",
+    jzqei: "PRO",
     defaultHttpPorts: [80, 8080, 2052, 2082, 2086, 2095, 8880],
     defaultHttpsPorts: [443, 8443, 2053, 2083, 2087, 2096],
     hostName: hostname,
     client: decodeURIComponent(searchParams.get("app") ?? ""),
     urlOrigin: origin,
-    subPath: SP || U
+    tsrah: SUB_PATH || U
   };
 }
 
@@ -4715,7 +4715,7 @@ async function buildDNS(isChain, isWarp, isPro) {
   } = globalThis.settings;
   const finalLocalDNS = localDNS === "localhost" ? "system" : `${localDNS}#DIRECT`;
   const proSign = isPro ? "Pro " : "";
-  const remoteDnsDetour = isWarp ? `\u{1F4A6} Warp ${proSign}- Best Ping \u{1F680}` : isChain ? "\u{1F4A6} Best Ping \u{1F680}" : "\u2705 Selector";
+  const remoteDnsDetour = isWarp ? `Warp ${proSign}- Best Ping` : isChain ? "Best Ping" : "Selector";
   const finalRemoteDNS = `${isWarp ? warpRemoteDNS : remoteDNS}#${remoteDnsDetour}`;
   const hosts = {};
   const nameserverPolicy = {};
@@ -4799,7 +4799,7 @@ function buildRoutingRules(isWarp) {
     ...routingRules.bypass.domains.map((domain) => `DOMAIN-SUFFIX,${domain},DIRECT`),
     ...routingRules.bypass.geoips.map((geoip) => `RULE-SET,${geoip},DIRECT`),
     ...routingRules.bypass.ips.map((ip) => buildIpCidrRule(ip, "DIRECT")),
-    "MATCH,\u2705 Selector"
+    "MATCH,Selector"
   ];
 }
 function buildRuleProviders() {
@@ -4849,7 +4849,7 @@ function buildOutbound(name, type, server, port, isIPv62, tfo, tls, transport, f
 function buildWebsocketOutbound(protocol, remark, address, port) {
   const {
     dict: { _VL_, _TR_ },
-    globalConfig: { userID, TrPass },
+    globalConfig: { userID, wytlg },
     settings: { fingerprint, enableTFO, enableIPv6, enableECH, echConfig }
   } = globalThis;
   const isTLS = isHttps(port);
@@ -4862,7 +4862,7 @@ function buildWebsocketOutbound(protocol, remark, address, port) {
     "packet-encoding": ""
   });
   return buildOutbound(remark, protocol, address, port, enableIPv6, enableTFO, tls, transport, {
-    "password": TrPass
+    "password": wytlg
   });
 }
 function buildWarpOutbound(warpAccount, remark, endpoint, chain, isPro) {
@@ -5132,7 +5132,7 @@ async function buildConfig(outbounds, selectorTags, proxyTags, chainTags, isChai
     "proxies": outbounds,
     "proxy-groups": [
       {
-        "name": "\u2705 Selector",
+        "name": "Selector",
         "type": "select",
         "proxies": selectorTags
       }
@@ -5146,11 +5146,11 @@ async function buildConfig(outbounds, selectorTags, proxyTags, chainTags, isChai
       "interval": 30
     }
   };
-  const name = isWarp ? `\u{1F4A6} Warp ${isPro ? "Pro " : ""}- Best Ping \u{1F680}` : "\u{1F4A6} Best Ping \u{1F680}";
+  const name = isWarp ? `Warp ${isPro ? "Pro " : ""}- Best Ping` : "Best Ping";
   const mainUrlTest = buildUrlTest(name, proxyTags, isWarp);
   config["proxy-groups"].push(mainUrlTest);
-  if (isWarp) config["proxy-groups"].push(buildUrlTest(`\u{1F4A6} WoW ${isPro ? "Pro " : ""}- Best Ping \u{1F680}`, chainTags, isWarp));
-  if (isChain) config["proxy-groups"].push(buildUrlTest("\u{1F4A6} \u{1F517} Best Ping \u{1F680}", chainTags, isWarp));
+  if (isWarp) config["proxy-groups"].push(buildUrlTest(`WoW ${isPro ? "Pro " : ""}- Best Ping`, chainTags, isWarp));
+  if (isChain) config["proxy-groups"].push(buildUrlTest("Best Ping", chainTags, isWarp));
   return config;
 }
 async function getClNormalConfig() {
@@ -5162,7 +5162,7 @@ async function getClNormalConfig() {
   const outbounds = [];
   const Addresses = await getConfigAddresses(false);
   const protocols = getProtocols();
-  const selectorTags = ["\u{1F4A6} Best Ping \u{1F680}"].concatIf(isChain, "\u{1F4A6} \u{1F517} Best Ping \u{1F680}");
+  const selectorTags = ["Best Ping"].concatIf(isChain, "Best Ping");
   protocols.forEach((protocol) => {
     let protocolIndex = 1;
     ports.forEach((port) => {
@@ -5207,23 +5207,23 @@ async function getClNormalConfig() {
 }
 async function getClWarpConfig(request, env, isPro) {
   const { warpEndpoints } = globalThis.settings;
-  const { warpAccounts } = await getDataset(request, env);
+  const { yzien } = await getDataset(request, env);
   const proxyTags = [];
   const chainTags = [];
   const outbounds = [];
   const proSign = isPro ? "Pro " : "";
   const selectorTags = [
-    `\u{1F4A6} Warp ${proSign}- Best Ping \u{1F680}`,
-    `\u{1F4A6} WoW ${proSign}- Best Ping \u{1F680}`
+    `Warp ${proSign}- Best Ping`,
+    `WoW ${proSign}- Best Ping`
   ];
   warpEndpoints.forEach((endpoint, index) => {
-    const warpTag = `\u{1F4A6} ${index + 1} - Warp ${proSign}\u{1F1EE}\u{1F1F7}`;
+    const warpTag = `${index + 1} - Warp ${proSign};
     proxyTags.push(warpTag);
-    const wowTag = `\u{1F4A6} ${index + 1} - WoW ${proSign}\u{1F30D}`;
+    const wowTag = `${index + 1} - WoW ${proSign}`;
     chainTags.push(wowTag);
     selectorTags.push(warpTag, wowTag);
-    const warpOutbound = buildWarpOutbound(warpAccounts[0], warpTag, endpoint, "", isPro);
-    const wowOutbound = buildWarpOutbound(warpAccounts[1], wowTag, endpoint, warpTag, false);
+    const warpOutbound = buildWarpOutbound(yzien[0], warpTag, endpoint, "", isPro);
+    const wowOutbound = buildWarpOutbound(yzien[1], wowTag, endpoint, warpTag, false);
     outbounds.push(warpOutbound, wowOutbound);
   });
   const config = await buildConfig(
@@ -5446,7 +5446,7 @@ async function buildDNS2(isWarp, isChain) {
     {
       type: isWarp ? "udp" : protocol,
       server: isWarp ? warpRemoteDNS : remoteDnsHost.host,
-      detour: isWarp ? "\u{1F4A6} Warp - Best Ping \u{1F680}" : isChain ? "\u{1F4A6} Best Ping \u{1F680}" : "\u2705 Selector",
+      detour: isWarp ? "Warp - Best Ping" : isChain ? "Best Ping" : "Selector",
       tag: "dns-remote"
     }
   ];
@@ -5610,7 +5610,7 @@ function buildRoutingRules2(isWarp, isChain) {
     },
     {
       clash_mode: "Global",
-      outbound: "\u2705 Selector"
+      outbound: "Selector"
     },
     {
       action: "sniff"
@@ -5673,7 +5673,7 @@ function buildRoutingRules2(isWarp, isChain) {
       strategy,
       rewrite_ttl: 60
     },
-    final: "\u2705 Selector"
+    final: "Selector"
   };
 }
 function addRoutingRule(rules, type, domain, ip, geosite, geoip, network, protocol, port) {
@@ -5717,7 +5717,7 @@ function buildOutbound2(tag2, type, server, server_port, tcp_fast_open, fields, 
 function buildWebsocketOutbound2(protocol, remark, address, port, isFragment) {
   const {
     dict: { _VL_ },
-    globalConfig: { userID, TrPass },
+    globalConfig: { userID, wytlg },
     settings: { fingerprint, enableTFO, enableECH, echConfig }
   } = globalThis;
   const { host, sni, allowInsecure } = selectSniHost(address);
@@ -5737,7 +5737,7 @@ function buildWebsocketOutbound2(protocol, remark, address, port, isFragment) {
     network: "tcp"
   }, tls, transport);
   return buildOutbound2(remark, protocol, address, port, enableTFO, {
-    password: TrPass,
+    password: wytlg,
     network: "tcp"
   }, tls, transport);
 }
@@ -5981,7 +5981,7 @@ async function buildConfig2(outbounds, endpoints, selectorTags, urlTestTags, sec
       ...outbounds,
       {
         type: "selector",
-        tag: "\u2705 Selector",
+        tag: "Selector",
         outbounds: selectorTags,
         interrupt_exist_connections: false
       },
@@ -6014,11 +6014,11 @@ async function buildConfig2(outbounds, endpoints, selectorTags, urlTestTags, sec
       }
     }
   };
-  const tag2 = isWarp ? `\u{1F4A6} Warp - Best Ping \u{1F680}` : "\u{1F4A6} Best Ping \u{1F680}";
+  const tag2 = isWarp ? `Warp - Best Ping` : "Best Ping";
   const mainUrlTest = buildUrlTest2(tag2, urlTestTags, isWarp);
   config.outbounds.push(mainUrlTest);
-  if (isWarp) config.outbounds.push(buildUrlTest2("\u{1F4A6} WoW - Best Ping \u{1F680}", secondUrlTestTags, isWarp));
-  if (isChain) config.outbounds.push(buildUrlTest2("\u{1F4A6} \u{1F517} Best Ping \u{1F680}", secondUrlTestTags, isWarp));
+  if (isWarp) config.outbounds.push(buildUrlTest2("WoW - Best Ping", secondUrlTestTags, isWarp));
+  if (isChain) config.outbounds.push(buildUrlTest2("Best Ping", secondUrlTestTags, isWarp));
   return config;
 }
 async function getSbCustomConfig(isFragment) {
@@ -6031,7 +6031,7 @@ async function getSbCustomConfig(isFragment) {
   const protocols = getProtocols();
   const Addresses = await getConfigAddresses(isFragment);
   const totalPorts = ports.filter((port) => !isFragment || isHttps(port));
-  const selectorTags = ["\u{1F4A6} Best Ping \u{1F680}"].concatIf(isChain, "\u{1F4A6} \u{1F517} Best Ping \u{1F680}");
+  const selectorTags = ["Best Ping"].concatIf(isChain, "Best Ping");
   protocols.forEach((protocol) => {
     let protocolIndex = 1;
     totalPorts.forEach((port) => {
@@ -6074,22 +6074,22 @@ async function getSbCustomConfig(isFragment) {
 }
 async function getSbWarpConfig(request, env) {
   const { warpEndpoints } = globalThis.settings;
-  const { warpAccounts } = await getDataset(request, env);
+  const { yzien } = await getDataset(request, env);
   const proxyTags = [];
   const chainTags = [];
   const outbounds = [];
   const selectorTags = [
-    "\u{1F4A6} Warp - Best Ping \u{1F680}",
-    "\u{1F4A6} WoW - Best Ping \u{1F680}"
+    "Warp - Best Ping",
+    "WoW - Best Ping"
   ];
   warpEndpoints.forEach((endpoint, index) => {
-    const warpTag = `\u{1F4A6} ${index + 1} - Warp \u{1F1EE}\u{1F1F7}`;
+    const warpTag = `${index + 1} - Warp ;
     proxyTags.push(warpTag);
-    const wowTag = `\u{1F4A6} ${index + 1} - WoW \u{1F30D}`;
+    const wowTag = `${index + 1} - WoW `;
     chainTags.push(wowTag);
     selectorTags.push(warpTag, wowTag);
-    const warpOutbound = buildWarpOutbound2(warpAccounts[0], warpTag, endpoint);
-    const wowOutbound = buildWarpOutbound2(warpAccounts[1], wowTag, endpoint, warpTag);
+    const warpOutbound = buildWarpOutbound2(yzien[0], warpTag, endpoint);
+    const wowOutbound = buildWarpOutbound2(yzien[1], wowTag, endpoint, warpTag);
     outbounds.push(warpOutbound, wowOutbound);
   });
   const config = await buildConfig2(
@@ -6437,7 +6437,7 @@ function buildWebsocketOutbound3(protocol, address, port, isFragment) {
       enableECH,
       echConfig
     },
-    globalConfig: { userID, TrPass },
+    globalConfig: { userID, wytlg },
     dict: { _VL_ }
   } = globalThis;
   const isTLS = isHttps(port);
@@ -6472,7 +6472,7 @@ function buildWebsocketOutbound3(protocol, address, port, isFragment) {
     servers: [{
       address,
       port,
-      password: TrPass
+      password: wytlg
     }]
   }, streamSettings);
 }
@@ -6803,8 +6803,8 @@ async function buildConfig3(remark, outbounds, isBalancer, isChain, balancerFall
 }
 async function addBestPingConfigs(configs, totalAddresses, proxyOutbounds, chainOutbounds, isFragment) {
   const isChain = !!chainOutbounds.length;
-  const chainSign = isChain ? "\u{1F517} " : "";
-  const remark = `\u{1F4A6} ${chainSign}Best Ping F \u{1F680}`;
+  const chainSign = isChain ? "" : "";
+  const remark = `${chainSign}Best Ping F`;
   const outbounds = [
     ...chainOutbounds,
     ...proxyOutbounds
@@ -6858,9 +6858,9 @@ async function addBestFragmentConfigs(configs, outbound, chainProxy) {
     const fragment = buildFreedomOutbound(true, false, `fragment-${index + 1}`, fragLength, fragInterval);
     outbounds.push(proxy, fragment);
   });
-  const chainSign = isChain ? "\u{1F517} " : "";
+  const chainSign = isChain ? "" : "";
   const config = await buildConfig3(
-    `\u{1F4A6} ${chainSign}Best Fragment \u{1F60E}`,
+    `${chainSign}Best Fragment`,
     outbounds,
     true,
     isChain,
@@ -6885,7 +6885,7 @@ async function addWorkerlessConfigs(configs) {
     udpNoise
   ];
   const cfDnsConfig = await buildConfig3(
-    `\u{1F4A6} 1 - Workerless \u2B50`,
+    `1 - WL`,
     outbounds,
     false,
     false,
@@ -6898,7 +6898,7 @@ async function addWorkerlessConfigs(configs) {
     ["cloudflare.com"]
   );
   const googleDnsConfig = await buildConfig3(
-    `\u{1F4A6} 2 - Workerless \u2B50`,
+    `2 - WL`,
     outbounds,
     false,
     false,
@@ -6962,7 +6962,7 @@ async function getXrCustomConfigs(isFragment) {
 }
 async function getXrWarpConfigs(request, env, isPro, isKnocker) {
   const { warpEndpoints } = globalThis.settings;
-  const { warpAccounts } = await getDataset(request, env);
+  const { yzien } = await getDataset(request, env);
   const proIndicator = isPro ? " Pro " : " ";
   const configs = [];
   const proxies = [];
@@ -6972,10 +6972,10 @@ async function getXrWarpConfigs(request, env, isPro, isKnocker) {
   for (const [index, endpoint] of warpEndpoints.entries()) {
     const { host } = parseHostPort(endpoint);
     if (isDomain(host)) outboundDomains.push(host);
-    const warpOutbound = buildWarpOutbound3(warpAccounts[0], endpoint, false, isPro);
-    const wowOutbound = buildWarpOutbound3(warpAccounts[1], endpoint, true, isPro);
+    const warpOutbound = buildWarpOutbound3(yzien[0], endpoint, false, isPro);
+    const wowOutbound = buildWarpOutbound3(yzien[1], endpoint, true, isPro);
     const warpConfig = await buildConfig3(
-      `\u{1F4A6} ${index + 1} - Warp${proIndicator}\u{1F1EE}\u{1F1F7}`,
+      `${index + 1} - Warp${proIndicator},
       [warpOutbound, ...udpNoise],
       false,
       false,
@@ -6985,7 +6985,7 @@ async function getXrWarpConfigs(request, env, isPro, isKnocker) {
       [host]
     );
     const wowConfig = await buildConfig3(
-      `\u{1F4A6} ${index + 1} - WoW${proIndicator}\u{1F30D}`,
+      `${index + 1} - WoW${proIndicator}`,
       [wowOutbound, warpOutbound, ...udpNoise],
       false,
       true,
@@ -7001,7 +7001,7 @@ async function getXrWarpConfigs(request, env, isPro, isKnocker) {
     chains.push(chain);
   }
   const warpBestPing = await buildConfig3(
-    `\u{1F4A6} Warp${proIndicator}- Best Ping \u{1F680}`,
+    `Warp${proIndicator}- Best Ping`,
     [...proxies, ...udpNoise],
     true,
     false,
@@ -7011,7 +7011,7 @@ async function getXrWarpConfigs(request, env, isPro, isKnocker) {
     outboundDomains
   );
   const wowBestPing = await buildConfig3(
-    `\u{1F4A6} WoW${proIndicator}- Best Ping \u{1F680}`,
+    `WoW${proIndicator}- Best Ping`,
     [...chains, ...proxies, ...udpNoise],
     true,
     true,
@@ -7545,8 +7545,8 @@ function parseTrHeader(buffer) {
     };
   }
   const password = new TextDecoder().decode(buffer.slice(0, crLfIndex));
-  const { TrPass } = globalThis.globalConfig;
-  if (password !== sha224(TrPass)) {
+  const { wytlg } = globalThis.globalConfig;
+  if (password !== sha224(wytlg)) {
     return {
       hasError: true,
       message: "invalid password"
@@ -7803,17 +7803,17 @@ async function handlePanel(request, env) {
       return await renderPanel(request, env);
     case "/app/options":
       return await getSettings(request, env);
-    case "/app/uo":
+    case "/app/update-options":
       return await updateSettings(request, env);
-    case "/app/ro":
+    case "/app/reset-options":
       return await resetSettings(request, env);
-    case "/app/rpwd":
+    case "/app/reset-password":
       return await resetPassword(request, env);
     case "/app/info":
       return await getMyIP(request);
-    case "/app/uwp":
+    case "/app/update-w":
       return await updateWarpConfigs(request, env);
-    case "/app/gwc":
+    case "/app/get-wc":
       return await getWarpConfigs(request, env);
     default:
       return await fallback(request);
@@ -7848,10 +7848,10 @@ async function handleSubscriptions(request, env) {
   await setSettings(request, env);
   const {
     globalConfig: { pathName },
-    httpConfig: { client, subPath }
+    httpConfig: { client, tsrah }
   } = globalThis;
   switch (pathName) {
-    case `/sub/normal/${subPath}`:
+    case `/sub/normal/${tsrah}`:
       switch (client) {
         case "xray":
           return await getXrCustomConfigs(false);
@@ -7862,7 +7862,7 @@ async function handleSubscriptions(request, env) {
         default:
           break;
       }
-    case `/sub/fragment/${subPath}`:
+    case `/sub/fragment/${tsrah}`:
       switch (client) {
         case "xray":
           return await getXrCustomConfigs(true);
@@ -7871,7 +7871,7 @@ async function handleSubscriptions(request, env) {
         default:
           break;
       }
-    case `/sub/warp/${subPath}`:
+    case `/sub/warp/${tsrah}`:
       switch (client) {
         case "xray":
           return await getXrWarpConfigs(request, env, false, false);
@@ -7882,7 +7882,7 @@ async function handleSubscriptions(request, env) {
         default:
           break;
       }
-    case `/sub/warp-pro/${subPath}`:
+    case `/sub/warp-pro/${tsrah}`:
       switch (client) {
         case "xray":
           return await getXrWarpConfigs(request, env, true, false);
@@ -7905,8 +7905,8 @@ async function updateSettings(request, env) {
   if (!auth) {
     return respond(false, 401 /* UNAUTHORIZED */, "Unauthorized or expired session.");
   }
-  const proxySettings = await updateDataset(request, env);
-  return respond(true, 200 /* OK */, "", proxySettings);
+  const tujzk = await updateDataset(request, env);
+  return respond(true, 200 /* OK */, "", tujzk);
 }
 async function resetSettings(request, env) {
   if (request.method !== "POST") {
@@ -7918,7 +7918,7 @@ async function resetSettings(request, env) {
   }
   try {
     const { settings } = globalThis;
-    await env.S.put("proxySettings", JSON.stringify(settings));
+    await env.S.put("tujzk", JSON.stringify(settings));
     return respond(true, 200 /* OK */, "", settings);
   } catch (error) {
     const message2 = error instanceof Error ? error.message : String(error);
@@ -7933,11 +7933,11 @@ async function getSettings(request, env) {
     return respond(false, 401 /* UNAUTHORIZED */, "Unauthorized or expired session.", { isPassSet });
   }
   const dataset = await getDataset(request, env);
-  const { subPath } = globalThis.httpConfig;
+  const { tsrah } = globalThis.httpConfig;
   const data = {
-    proxySettings: dataset.settings,
+    tujzk: dataset.settings,
     isPassSet,
-    subPath
+    tsrah
   };
   return respond(true, 200 /* OK */, void 0, data);
 }
@@ -7977,8 +7977,8 @@ async function getWarpConfigs(request, env) {
   if (!auth) {
     return new Response("Unauthorized or expired session.", { status: 401 /* UNAUTHORIZED */ });
   }
-  const { warpAccounts, settings } = await getDataset(request, env);
-  const { warpIPv6, publicKey, privateKey } = warpAccounts[0];
+  const { yzien, settings } = await getDataset(request, env);
+  const { warpIPv6, publicKey, privateKey } = yzien[0];
   const {
     warpEndpoints,
     warpRemoteDNS,
@@ -8098,9 +8098,9 @@ async function decompressHtml(content, asString) {
 }
 async function handleDoH(request) {
   const url = new URL(request.url);
-  const { subPath } = globalThis.httpConfig;
+  const { tsrah } = globalThis.httpConfig;
   const { dohURL } = globalThis.globalConfig;
-  if (url.pathname !== `/dns-query/${subPath}`) {
+  if (url.pathname !== `/dns-query/${tsrah}`) {
     return fallback(request);
   }
   const targetURL = new URL(dohURL);
@@ -8125,7 +8125,7 @@ var worker_default = {
         const { pathName } = globalThis.globalConfig;
         const path = pathName.split("/")[1];
         switch (path) {
-          case "app":
+          case "panel":
             return await handlePanel(request, env);
           case "sub":
             return await handleSubscriptions(request, env);
@@ -8135,7 +8135,7 @@ var worker_default = {
             return logout();
           case "secrets":
             return await renderSecrets();
-          case "file.ico":
+          case "favicon.ico":
             return await serveIcon();
           case `dns-query`:
             return await handleDoH(request);
