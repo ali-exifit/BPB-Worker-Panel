@@ -6975,7 +6975,7 @@ async function getXrWarpConfigs(request, env, isPro, isKnocker) {
     const warpOutbound = buildWarpOutbound3(yzien[0], endpoint, false, isPro);
     const wowOutbound = buildWarpOutbound3(yzien[1], endpoint, true, isPro);
     const warpConfig = await buildConfig3(
-      `${index + 1} - Warp${proIndicator},
+      `${index + 1} - Warp${proIndicator}`,
       [warpOutbound, ...udpNoise],
       false,
       false,
