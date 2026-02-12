@@ -32,7 +32,7 @@ jobs:
         run: npm install --production
 
       - name: Build production worker from raw file
-        run: node build.js
+        run: node scripts/build.js
         env:
           INPUT_RAW_WORKER_PATH: ${{ github.event.inputs.raw_file_path || 'raw-edits/worker-raw.js' }}
           NODE_ENV: obfuscate   # or 'mangle' – your choice
