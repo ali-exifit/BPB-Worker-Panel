@@ -5217,7 +5217,7 @@ async function getClWarpConfig(request, env, isPro) {
     `WoW ${proSign}- Best Ping`
   ];
   warpEndpoints.forEach((endpoint, index) => {
-    const warpTag = `${index + 1} - Warp ${proSign};
+    const warpTag = `${index + 1} - Warp ${proSign}`;
     proxyTags.push(warpTag);
     const wowTag = `${index + 1} - WoW ${proSign}`;
     chainTags.push(wowTag);
