@@ -1,0 +1,50 @@
+name: Build Production from Raw
+
+on:
+  workflow_dispatch:
+    inputs:
+      raw_file_path:
+        description: 'Path to the raw worker file in the repository'
+        required: true
+        default: 'raw-edits/worker-raw.js'
+  push:
+    paths:
+      - 'raw-edits/worker-raw.js'
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-from-raw:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'latest'
+
+      - name: Install dependencies
+        run: npm install --production
+
+      - name: Build production worker from raw file
+        run: node build.js
+        env:
+          INPUT_RAW_WORKER_PATH: ${{ github.event.inputs.raw_file_path || 'raw-edits/worker-raw.js' }}
+          NODE_ENV: obfuscate   # or 'mangle' – your choice
+
+      - name: Upload Release Asset
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/worker.js
+          tag: custom-raw-${{ github.run_number }}
+          release_name: Custom build from raw
+          overwrite: true
+          body: |
+            Production worker generated from manually edited raw file.
+            Commit: ${{ github.sha }}
