@@ -10,6 +10,10 @@ import obfs from 'javascript-obfuscator';
 import pkg from '../package.json' with { type: 'json' };
 import { gzipSync } from 'zlib';
 
+// ---- RAW BUILD DETECTION ----
+const isRawBuild = process.env.BUILD_RAW === 'true' || process.env.NODE_ENV === 'development';
+// -----------------------------
+
 const env = process.env.NODE_ENV || 'mangle';
 const mangleMode = env === 'mangle';
 
@@ -42,19 +46,32 @@ async function processHtmlPages() {
         if (dir !== 'error') {
             const styleCode = readFileSync(base('style.css'), 'utf8');
             const scriptCode = readFileSync(base('script.js'), 'utf8');
-            const finalScriptCode = await jsMinify(scriptCode);
+
+            // ---- RAW MODE: skip minification of CSS/JS ----
+            const finalStyle = isRawBuild
+                ? styleCode
+                : styleCode;  // CSS is not minified in either mode (no CSS minifier used)
+            const finalScript = isRawBuild
+                ? scriptCode
+                : (await jsMinify(scriptCode)).code;
+            // -------------------------------------------------
+
             finalHtml = finalHtml
-                .replaceAll('__STYLE__', `<style>${styleCode}</style>`)
-                .replaceAll('__SCRIPT__', finalScriptCode.code);
+                .replaceAll('__STYLE__', `<style>${finalStyle}</style>`)
+                .replaceAll('__SCRIPT__', `<script>${finalScript}</script>`);
         }
 
-        const minifiedHtml = htmlMinify(finalHtml, {
-            collapseWhitespace: true,
-            removeAttributeQuotes: true,
-            minifyCSS: true
-        });
+        // ---- RAW MODE: skip HTML minification ----
+        const htmlToCompress = isRawBuild
+            ? finalHtml
+            : htmlMinify(finalHtml, {
+                collapseWhitespace: true,
+                removeAttributeQuotes: true,
+                minifyCSS: true
+            });
+        // -------------------------------------------
 
-        const compressed = gzipSync(minifiedHtml);
+        const compressed = gzipSync(htmlToCompress);
         const htmlBase64 = compressed.toString('base64');
         result[dir] = JSON.stringify(htmlBase64);
     }
@@ -64,6 +81,7 @@ async function processHtmlPages() {
 }
 
 function generateJunkCode() {
+    // Only used in non‑raw builds
     const minVars = 50, maxVars = 500;
     const minFuncs = 50, maxFuncs = 500;
 
@@ -111,46 +129,46 @@ async function buildWorker() {
 
     console.log(`${success} Worker built successfuly!`);
 
-    const minifyCode = async (code) => {
-        const minified = await jsMinify(code, {
-            module: true,
-            output: {
-                comments: false
-            },
-            compress: {
-                dead_code: false,
-                unused: false
-            }
-        });
-
-        console.log(`${success} Worker minified successfuly!`);
-        return minified;
-    }
-
     let finalCode;
 
-    if (mangleMode) {
-        const junkCode = generateJunkCode();
-        const minifiedCode = await minifyCode(junkCode + code.outputFiles[0].text);
-        finalCode = minifiedCode.code;
+    // ---- RAW MODE: skip all post‑processing ----
+    if (isRawBuild) {
+        // Use the exact esbuild output (no minify, no obfuscation, no junk)
+        finalCode = code.outputFiles[0].text;
+        console.log(`${success} Worker (raw) – no minification/obfuscation applied`);
     } else {
-        const minifiedCode = await minifyCode(code.outputFiles[0].text);
-        const obfuscationResult = obfs.obfuscate(minifiedCode.code, {
-            stringArrayThreshold: 1,
-            stringArrayEncoding: [
-                "rc4"
-            ],
-            numbersToExpressions: true,
-            transformObjectKeys: true,
-            renameGlobals: true,
-            deadCodeInjection: true,
-            deadCodeInjectionThreshold: 0.2,
-            target: "browser"
-        });
+        // Original minification/obfuscation logic
+        const minifyCode = async (code) => {
+            const minified = await jsMinify(code, {
+                module: true,
+                output: { comments: false },
+                compress: { dead_code: false, unused: false }
+            });
+            console.log(`${success} Worker minified successfuly!`);
+            return minified;
+        };
 
-        console.log(`${success} Worker obfuscated successfuly!`);
-        finalCode = obfuscationResult.getObfuscatedCode();
+        if (mangleMode) {
+            const junkCode = generateJunkCode();
+            const minifiedCode = await minifyCode(junkCode + code.outputFiles[0].text);
+            finalCode = minifiedCode.code;
+        } else {
+            const minifiedCode = await minifyCode(code.outputFiles[0].text);
+            const obfuscationResult = obfs.obfuscate(minifiedCode.code, {
+                stringArrayThreshold: 1,
+                stringArrayEncoding: ["rc4"],
+                numbersToExpressions: true,
+                transformObjectKeys: true,
+                renameGlobals: true,
+                deadCodeInjection: true,
+                deadCodeInjectionThreshold: 0.2,
+                target: "browser"
+            });
+            console.log(`${success} Worker obfuscated successfuly!`);
+            finalCode = obfuscationResult.getObfuscatedCode();
+        }
     }
+    // ---------------------------------------------
 
     const buildTimestamp = new Date().toISOString();
     const buildInfo = `// Build: ${buildTimestamp}\n`;
@@ -172,4 +190,3 @@ buildWorker().catch(err => {
     console.error(`${failure} Build failed:`, err);
     process.exit(1);
 });
-
