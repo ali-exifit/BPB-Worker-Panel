@@ -1,7 +1,7 @@
 {
 	"name": "bpb-panel",
 	"version": "4.1.0",
-	"homepage": "https://github.com/bia-pain-bache/BPB-Worker-Panel",
+	"homepage": "https://github.com/ali-exifit/BPB-Worker-Panel",
 	"license": "GPL-3.0",
 	"private": true,
 	"type": "module",
