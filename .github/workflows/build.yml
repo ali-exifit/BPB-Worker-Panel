@@ -5,6 +5,15 @@ permissions:
 
 on:
   workflow_dispatch:
+    inputs:
+      build_mode:
+        description: 'Build mode: production (min/obfuscated) or raw (unminified)'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - raw
   schedule:
     - cron: '0 */1 * * *'
 
@@ -36,9 +45,38 @@ jobs:
 
       - name: Type check
         run: npm run check
-        
-      - name: Build project
+
+      # ------------------------------------------------------------
+      # Production build (minified/obfuscated) – default for schedule
+      # ------------------------------------------------------------
+      - name: Build production (min/obfuscated)
+        if: ${{ github.event.inputs.build_mode != 'raw' }}
         run: npm run build
+        env:
+          NODE_ENV: obfuscate   # or keep your default 'mangle'
+
+      # ------------------------------------------------------------
+      # Raw build (unminified, unobfuscated) – when explicitly requested
+      # ------------------------------------------------------------
+      - name: Build raw (readable)
+        if: ${{ github.event.inputs.build_mode == 'raw' }}
+        run: npm run build
+        env:
+          BUILD_RAW: true
+
+      # ------------------------------------------------------------
+      # Always rename the output so we know which mode we produced
+      # ------------------------------------------------------------
+      - name: Prepare assets for release
+        run: |
+          mkdir -p dist-release
+          if [ "${{ github.event.inputs.build_mode }}" == "raw" ]; then
+            cp dist/worker.js dist-release/worker-raw.js
+            cp dist/worker.zip dist-release/worker-raw.zip
+          else
+            cp dist/worker.js dist-release/worker.js
+            cp dist/worker.zip dist-release/worker.zip
+          fi
 
       - name: Read release note
         id: read_release
@@ -48,13 +86,13 @@ jobs:
           r="${r//'%'/'%25'}"                               
           r="${r//$'\n'/'%0A'}"                             
           r="${r//$'\r'/'%0D'}"                             
-          echo "RELEASE_BODY=$r" >> $GITHUB_OUTPUT          
+          echo "RELEASE_BODY=$r" >> $GITHUB_OUTPUT
 
       - name: Upload Release Assets
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/*
+          file: dist-release/*
           tag: v${{ steps.get_version.outputs.version }}
           release_name: Release v${{ steps.get_version.outputs.version }}
           overwrite: true
